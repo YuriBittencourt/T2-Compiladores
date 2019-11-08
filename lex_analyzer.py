@@ -31,6 +31,12 @@ tokens = [
     'LPAREN',
     'RPAREN',
     'ATRIB',
+    'FUNCLIST',
+    'FUNCDEF',
+    'PARAMLIST',
+    'FUNCCALL',
+    'PARAMLISTCALL',
+    'COMMA'
 ]
 
 # Palavras reservadas da linguagem
@@ -47,6 +53,7 @@ reserved = {
     'for': 'FOR',
     'new': 'NEW',
     'null': 'NULL',
+    'def': 'DEF',
 }
 
 # Expressões regulares para os tokens
@@ -62,6 +69,7 @@ t_STRCONST = r'\"(.)*\"'
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
 t_ATRIB = r'\='
+t_COMMA = r'\,'
 
 # função especial para fazer cast dos valores dos tokens FLOATCONST e
 # INTCONST e também definir sua expressão regular
