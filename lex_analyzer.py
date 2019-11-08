@@ -36,7 +36,8 @@ tokens = [
     'PARAMLIST',
     'FUNCCALL',
     'PARAMLISTCALL',
-    'COMMA'
+    'COMMA',
+    'DEF',
 ]
 
 # Palavras reservadas da linguagem

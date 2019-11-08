@@ -11,9 +11,27 @@ global_tree = []
 
 def p_program(p):
     '''program : statement
+                | funclist
                 | epsilon
     '''
     global_tree.append(('program', p[1]))
+
+def p_funclist(p):
+    '''funclist : funcdef funclist
+                | funcdef
+    '''
+    global_tree.append(('funclist', p[1:]))
+
+def p_funcdef(p):
+    '''funcdef : DEF IDENT LPAREN paramlist RPAREN LBRACES statelist RBRACES
+    '''
+    global_tree.append(('funcdef', p[1]))
+
+def p_paramlist(p):
+    '''paramlist : types IDENT COMMA paramlist
+                | epsilon
+    '''
+    global_tree.append(('paramlist', p[1:]))
 
 # Define a regra vazia
 def p_epsilon(p):
@@ -60,8 +78,19 @@ def p_integer(p):
 def p_atribstat(p):
     '''atribstat : lvalue ATRIB expression
                     | lvalue ATRIB allocexpression
+                    | lvalue ATRIB funccall
     '''
     global_tree.append((tuple(['atribstat'] + p[1:])))
+
+def p_funccall(p):
+    'funccall : IDENT LPAREN paramlistcall RPAREN'
+    global_tree.append(('funccall', p[1], p[2], p[3], p[4]))
+
+def p_paramlistcall(p):
+    '''paramlistcall : IDENT COMMA paramlistcall
+                        | epsilon
+    '''
+    global_tree.append(('paramlistcall', p[1:]))
 
 def p_printstat(p):
     'printstat : PRINT expression'
