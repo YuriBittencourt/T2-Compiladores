@@ -28,10 +28,16 @@ def p_funcdef(p):
     global_tree.append(('funcdef', p[1]))
 
 def p_paramlist(p):
-    '''paramlist : types IDENT COMMA paramlist
+    '''paramlist : types IDENT paramlistiter
                 | epsilon
     '''
     global_tree.append(('paramlist', p[1:]))
+
+def p_paramlistiter(p):
+    '''paramlist : COMMA types IDENT paramlistiter
+                | epsilon
+    '''
+    global_tree.append(('paramlistiter', p[1:]))
 
 # Define a regra vazia
 def p_epsilon(p):

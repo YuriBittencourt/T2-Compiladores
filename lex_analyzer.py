@@ -34,6 +34,7 @@ tokens = [
     'FUNCLIST',
     'FUNCDEF',
     'PARAMLIST',
+    'PARAMLISTITER',
     'FUNCCALL',
     'PARAMLISTCALL',
     'COMMA',
