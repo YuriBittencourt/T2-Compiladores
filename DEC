@@ -2,3 +2,4 @@ VARDECL : TYPES IDENT INT
 TYPES : int | float | string
 INT : [INT_CONSTANT]INT | epsilon
 IDENT: ^[a-z_]([A-Za-z_0-9])*$
+INT_CONSTANT: ^\d+$
