@@ -34,7 +34,7 @@ def p_paramlist(p):
     global_tree.append(('paramlist', p[1:]))
 
 def p_paramlistiter(p):
-    '''paramlist : COMMA types IDENT paramlistiter
+    '''paramlistiter : COMMA types IDENT paramlistiter
                 | epsilon
     '''
     global_tree.append(('paramlistiter', p[1:]))
@@ -93,7 +93,13 @@ def p_funccall(p):
     global_tree.append(('funccall', p[1], p[2], p[3], p[4]))
 
 def p_paramlistcall(p):
-    '''paramlistcall : IDENT COMMA paramlistcall
+    '''paramlistcall : IDENT paramlistcalliter
+                        | epsilon
+    '''
+    global_tree.append(('paramlistcall', p[1:]))
+
+def p_paramlistcalliter(p):
+    '''paramlistcalliter : COMMA IDENT paramlistcalliter
                         | epsilon
     '''
     global_tree.append(('paramlistcall', p[1:]))
