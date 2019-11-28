@@ -1,20 +1,46 @@
 # -*- coding: utf-8 -*-
 import sys
 import ply.yacc as yacc
+import pprint
 
 # Importar a lista de tokens do analisador léxico
 from lex_analyzer import tokens
 
+
+class Scope(object):
+    actual_scope = {'father': "Teste", 'elements': []}
+
+
 global_tree = []
 
-# Define a regra inicial, por padrão o PLY irá usar a primeira regra definida
 
+
+def new_scope():
+    print(Scope.actual_scope)
+    Scope.actual_scope = {'father': Scope.actual_scope,
+                     'elements': []}
+
+
+def end_scope():
+    Scope.actual_scope = Scope.actual_scope['father']
+
+
+# Define a regra inicial, por padrão o PLY irá usar a primeira regra definida
 def p_program(p):
     '''program : statement
                 | funclist
                 | epsilon
     '''
     global_tree.append(('program', p[1]))
+
+
+def p_new_scope(p):
+    '''new_scope :'''
+    new_scope()
+
+def p_end_scope(p):
+    '''end_scope :'''
+    end_scope()
 
 def p_funclist(p):
     '''funclist : funcdef funclist
@@ -23,7 +49,7 @@ def p_funclist(p):
     global_tree.append(('funclist', p[1:]))
 
 def p_funcdef(p):
-    '''funcdef : DEF IDENT LPAREN paramlist RPAREN LBRACES statelist RBRACES
+    '''funcdef : DEF IDENT LPAREN paramlist RPAREN LBRACES new_scope statelist end_scope RBRACES
     '''
     global_tree.append(('funcdef', p[1]))
 
@@ -53,7 +79,7 @@ def p_statement(p):
                  | returnstat SEMICOLON
                  | ifstat
                  | forstat
-                 | LBRACES statelist RBRACES
+                 | LBRACES new_scope statelist end_scope RBRACES
                  | BREAK SEMICOLON
                  | SEMICOLON
     '''
@@ -240,3 +266,4 @@ def build_parser(program):
 if __name__ == "__main__":
     l = build_parser(sys.argv[1])
     print("Success!")
+    print(Scope.actual_scope)
