@@ -43,6 +43,31 @@ def p_end_scope(p):
     end_scope()
 
 
+# Define as regras restantes da linguagem
+def p_statement(p):
+    """statement : oneline
+                    | LBRACES new_scope statelist end_scope RBRACES"""
+    global_tree.append((tuple(['statement'] + p[1:])))
+
+
+def p_scopestatement(p):
+    """scopestatement :  new_scope oneline end_scope
+                        | LBRACES new_scope statelist end_scope RBRACES
+    """
+
+
+def p_oneline(p):
+    """oneline : vardecl SEMICOLON
+                            | atribstat SEMICOLON
+                            | printstat SEMICOLON
+                            | readstat SEMICOLON
+                            | returnstat SEMICOLON
+                            | ifstat
+                            | forstat
+                            | BREAK SEMICOLON
+                            | SEMICOLON
+    """
+
 def p_funclist(p):
     """funclist : funcdef funclist
                 | funcdef
@@ -74,22 +99,6 @@ def p_paramlistiter(p):
 def p_epsilon(p):
     """epsilon :"""
     global_tree.append(('epsilon'))
-
-
-# Define as regras restantes da linguagem
-def p_statement(p):
-    """statement : vardecl SEMICOLON
-                 | atribstat SEMICOLON
-                 | printstat SEMICOLON
-                 | readstat SEMICOLON
-                 | returnstat SEMICOLON
-                 | ifstat
-                 | forstat
-                 | LBRACES new_scope statelist end_scope RBRACES
-                 | BREAK SEMICOLON
-                 | SEMICOLON
-    """
-    global_tree.append((tuple(['statement'] + p[1:])))
 
 
 def p_vardecl(p):
@@ -162,19 +171,19 @@ def p_returnstat(p):
 
 
 def p_ifstat(p):
-    """ifstat : IF LPAREN expression RPAREN statement else"""
+    """ifstat : IF LPAREN expression RPAREN scopestatement else"""
     global_tree.append((tuple(['ifstat'] + p[1:])))
 
 
 def p_else(p):
-    """else : ELSE statement
+    """else : ELSE scopestatement
             | epsilon
     """
     global_tree.append((tuple(['else'] + p[1:])))
 
 
 def p_forstat(p):
-    """forstat : FOR LPAREN atribstat SEMICOLON expression SEMICOLON atribstat RPAREN statement"""
+    """forstat : FOR LPAREN atribstat SEMICOLON expression SEMICOLON atribstat RPAREN scopestatement"""
     global_tree.append((tuple(['forstat'] + p[1:])))
 
 
