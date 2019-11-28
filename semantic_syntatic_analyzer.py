@@ -10,13 +10,14 @@ global_tree = []
 
 
 class Scope(object):
-    root_scope = {'father': None, 'children': [], 'elements': []}
+    root_scope = {'father': None, 'children': [], 'elements': [], 'for': False}
     actual_scope = root_scope
 
 
 def new_scope():
     child_scope = {'father': Scope.actual_scope, 'children': [], 'elements': []}
     Scope.actual_scope['children'].append(child_scope)
+    child_scope['for'] = Scope.actual_scope['for']
     Scope.actual_scope = child_scope
 
 
@@ -36,6 +37,18 @@ def p_program(p):
 def p_new_scope(p):
     """new_scope :"""
     new_scope()
+    if Scope.actual_scope['for']:
+        return
+
+    try:
+        i = -1
+        while str(p[i]) != 'for':
+            i -= 1
+
+        Scope.actual_scope['for'] = True
+
+    except AttributeError:
+        pass
 
 
 def p_end_scope(p):
@@ -315,5 +328,4 @@ def build_parser(program):
 if __name__ == "__main__":
     l_tree = build_parser(sys.argv[1])
     print("Success!")
-    print(l_tree)
     pprint.pprint(Scope.root_scope)
