@@ -98,19 +98,31 @@ def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
+
 # String de caracteres ignorados, espaços e tabs
 t_ignore = ' \t'
+
+
+def find_column(input, token):
+    last_cr = input.rfind('\n', 0, token.lexpos)
+    if last_cr < 0:
+        last_cr = 0
+    column = (token.lexpos - last_cr) + 1
+    return column
+
 
 # Regra de tratamento de erro:
 # Imprime a caractere inválida, sua linha e coluna.
 def t_error(t):
     print("Illegal character '%s'" % t.value[0])
-    print("Line: %s, Column: %s" % (t.lexer.lineno, t.lexer.lexpos + 1))
+    print("Line: %s, Column: %s" % (t.lexer.lineno, find_column(t.lexer.lexdata,t.lexer)))
     # esse + 1 é para contar a partir da posição 1 e não zero
     exit(0)
 
+
 # inicializa o analisador léxico
 lexer = lex.lex()
+
 
 # constroi o análisador léxico
 def build_lexer(program):

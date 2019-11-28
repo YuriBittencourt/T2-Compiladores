@@ -4,7 +4,7 @@ import ply.yacc as yacc
 import pprint
 
 # Importar a lista de tokens do analisador léxico
-from lex_analyzer import tokens
+from lex_analyzer import tokens, find_column
 
 global_tree = []
 
@@ -34,6 +34,7 @@ def p_program(p):
     global_tree.append(('program', p[1]))
 
 
+#essas próximas regras são apenas semânticas
 def p_new_scope(p):
     """new_scope :"""
     new_scope()
@@ -54,6 +55,16 @@ def p_new_scope(p):
 def p_end_scope(p):
     """end_scope :"""
     end_scope()
+
+
+def p_check_break(p):
+    """check_break :"""
+    if not Scope.actual_scope['for']:
+        print("Semantic error in input! Break without a For statement.")
+        print("Line: %s, Column: %s" % (p.stack[-1].lineno, find_column(p.lexer.lexdata,p.stack[-1])))
+
+        exit(-1)
+
 
 
 # Define as regras restantes da linguagem
@@ -77,7 +88,7 @@ def p_oneline(p):
                             | returnstat SEMICOLON
                             | ifstat
                             | forstat
-                            | BREAK SEMICOLON
+                            | BREAK SEMICOLON check_break
                             | SEMICOLON
     """
 
@@ -300,7 +311,7 @@ def p_lvalue(p):
 # Função de erro para erros sintáticos
 def p_error(p):
     print("Syntax error in input! Token: %s" % (p,))
-    print("Line: %s, Column: %s" % (p.lineno, p.lexpos))
+    print("Line: %s, Column: %s" % (p.lineno, find_column(p.lexer.lexdata, p)-1))
 
     if len(global_tree) == 0:
         print("Error production: %s" % (parser.productions[1],))
