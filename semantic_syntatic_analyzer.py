@@ -6,19 +6,18 @@ import pprint
 # Importar a lista de tokens do analisador léxico
 from lex_analyzer import tokens
 
-
-class Scope(object):
-    actual_scope = {'father': "Teste", 'elements': []}
-
-
 global_tree = []
 
 
+class Scope(object):
+    root_scope = {'father': None, 'children': [], 'elements': []}
+    actual_scope = root_scope
+
 
 def new_scope():
-    print(Scope.actual_scope)
-    Scope.actual_scope = {'father': Scope.actual_scope,
-                     'elements': []}
+    child_scope = {'father': Scope.actual_scope, 'children': [], 'elements': []}
+    Scope.actual_scope['children'].append(child_scope)
+    Scope.actual_scope = child_scope
 
 
 def end_scope():
@@ -27,52 +26,59 @@ def end_scope():
 
 # Define a regra inicial, por padrão o PLY irá usar a primeira regra definida
 def p_program(p):
-    '''program : statement
+    """program : statement
                 | funclist
                 | epsilon
-    '''
+    """
     global_tree.append(('program', p[1]))
 
 
 def p_new_scope(p):
-    '''new_scope :'''
+    """new_scope :"""
     new_scope()
 
+
 def p_end_scope(p):
-    '''end_scope :'''
+    """end_scope :"""
     end_scope()
 
+
 def p_funclist(p):
-    '''funclist : funcdef funclist
+    """funclist : funcdef funclist
                 | funcdef
-    '''
+    """
     global_tree.append(('funclist', p[1:]))
 
+
 def p_funcdef(p):
-    '''funcdef : DEF IDENT LPAREN paramlist RPAREN LBRACES new_scope statelist end_scope RBRACES
-    '''
+    """funcdef : DEF IDENT LPAREN paramlist RPAREN LBRACES new_scope statelist end_scope RBRACES
+    """
     global_tree.append(('funcdef', p[1]))
 
+
 def p_paramlist(p):
-    '''paramlist : types IDENT paramlistiter
+    """paramlist : types IDENT paramlistiter
                 | epsilon
-    '''
+    """
     global_tree.append(('paramlist', p[1:]))
 
+
 def p_paramlistiter(p):
-    '''paramlistiter : COMMA types IDENT paramlistiter
+    """paramlistiter : COMMA types IDENT paramlistiter
                 | epsilon
-    '''
+    """
     global_tree.append(('paramlistiter', p[1:]))
+
 
 # Define a regra vazia
 def p_epsilon(p):
-    'epsilon :'
+    """epsilon :"""
     global_tree.append(('epsilon'))
+
 
 # Define as regras restantes da linguagem
 def p_statement(p):
-    '''statement : vardecl SEMICOLON
+    """statement : vardecl SEMICOLON
                  | atribstat SEMICOLON
                  | printstat SEMICOLON
                  | readstat SEMICOLON
@@ -82,161 +88,192 @@ def p_statement(p):
                  | LBRACES new_scope statelist end_scope RBRACES
                  | BREAK SEMICOLON
                  | SEMICOLON
-    '''
+    """
     global_tree.append((tuple(['statement'] + p[1:])))
 
+
 def p_vardecl(p):
-    'vardecl : types IDENT integer'
+    """vardecl : types IDENT integer"""
     global_tree.append(('vardecl', p[1], p[2], p[3]))
 
+
 def p_types_int(p):
-    'types : INT'
+    """types : INT"""
     global_tree.append(('type', p[1]))
+
 
 def p_types_float(p):
-    'types : FLOAT'
+    """types : FLOAT"""
     global_tree.append(('type', p[1]))
+
 
 def p_types_string(p):
-    'types : STRING'
+    """types : STRING"""
     global_tree.append(('type', p[1]))
 
+
 def p_integer(p):
-    '''integer : LBRACKET INTCONST RBRACKET integer
+    """integer : LBRACKET INTCONST RBRACKET integer
             | epsilon
-    '''
+    """
     global_tree.append((tuple(['integer'] + p[1:])))
 
+
 def p_atribstat(p):
-    '''atribstat : lvalue ATRIB expression
+    """atribstat : lvalue ATRIB expression
                     | lvalue ATRIB allocexpression
                     | lvalue ATRIB funccall
-    '''
+    """
     global_tree.append((tuple(['atribstat'] + p[1:])))
 
+
 def p_funccall(p):
-    'funccall : IDENT LPAREN paramlistcall RPAREN'
+    """funccall : IDENT LPAREN paramlistcall RPAREN"""
     global_tree.append(('funccall', p[1], p[2], p[3], p[4]))
 
+
 def p_paramlistcall(p):
-    '''paramlistcall : IDENT paramlistcalliter
+    """paramlistcall : IDENT paramlistcalliter
                         | epsilon
-    '''
+    """
     global_tree.append(('paramlistcall', p[1:]))
+
 
 def p_paramlistcalliter(p):
-    '''paramlistcalliter : COMMA IDENT paramlistcalliter
+    """paramlistcalliter : COMMA IDENT paramlistcalliter
                         | epsilon
-    '''
+    """
     global_tree.append(('paramlistcall', p[1:]))
 
+
 def p_printstat(p):
-    'printstat : PRINT expression'
+    """printstat : PRINT expression"""
     global_tree.append((tuple(['printstat'] + p[1:])))
 
+
 def p_readstat(p):
-    'readstat : READ lvalue'
+    """readstat : READ lvalue"""
     global_tree.append((tuple(['readstat'] + p[1:])))
 
+
 def p_returnstat(p):
-    'returnstat : RETURN'
+    """returnstat : RETURN"""
     global_tree.append(('returnstat', p[1]))
 
+
 def p_ifstat(p):
-    'ifstat : IF LPAREN expression RPAREN statement else'
+    """ifstat : IF LPAREN expression RPAREN statement else"""
     global_tree.append((tuple(['ifstat'] + p[1:])))
 
+
 def p_else(p):
-    '''else : ELSE statement
+    """else : ELSE statement
             | epsilon
-    '''
+    """
     global_tree.append((tuple(['else'] + p[1:])))
 
+
 def p_forstat(p):
-    'forstat : FOR LPAREN atribstat SEMICOLON expression SEMICOLON atribstat RPAREN statement'
+    """forstat : FOR LPAREN atribstat SEMICOLON expression SEMICOLON atribstat RPAREN statement"""
     global_tree.append((tuple(['forstat'] + p[1:])))
 
+
 def p_statelist(p):
-    '''statelist : statement
+    """statelist : statement
                     | statement statelist
-    '''
+    """
     global_tree.append((tuple(['statelist'] + p[1:])))
 
+
 def p_allocexpression(p):
-    'allocexpression : NEW types expressions'
+    """allocexpression : NEW types expressions"""
     global_tree.append((tuple(['allocexpression'] + p[1:])))
 
+
 def p_expressions(p):
-    '''expressions : LBRACKET expression RBRACKET expressions
+    """expressions : LBRACKET expression RBRACKET expressions
                     | LBRACKET expression RBRACKET
-    '''
+    """
     global_tree.append((tuple(['expressions'] + p[1:])))
 
+
 def p_expression(p):
-    '''expression : numexpression
+    """expression : numexpression
                     | binaryoperator numexpression
-    '''
+    """
     global_tree.append((tuple(['expression'] + p[1:])))
 
+
 def p_binaryoperator(p):
-    '''binaryoperator : numexpression relationaloperator
+    """binaryoperator : numexpression relationaloperator
                         | epsilon
-    '''
+    """
     global_tree.append((tuple(['binaryoperator'] + p[1:])))
 
+
 def p_relationaloperator(p):
-    '''relationaloperator : RELOP'''
+    """relationaloperator : RELOP"""
     global_tree.append(('relationaloperator', p[1]))
 
+
 def p_numexpression(p):
-    '''numexpression : term signedterms'''
+    """numexpression : term signedterms"""
     global_tree.append((tuple(['numexpression'] + p[1:])))
 
+
 def p_signedterms(p):
-    '''signedterms : signal term signedterms
+    """signedterms : signal term signedterms
                     | epsilon
-    '''
+    """
     global_tree.append((tuple(['signedterms'] + p[1:])))
 
+
 def p_signal(p):
-    '''signal : SIGNAL'''
+    """signal : SIGNAL"""
     global_tree.append(('signal', p[1]))
 
+
 def p_term(p):
-    '''term : unaryexpr unaryiter'''
+    """term : unaryexpr unaryiter"""
     global_tree.append((tuple(['term'] + p[1:])))
 
+
 def p_unaryiter(p):
-    '''unaryiter : unaryop unaryexpr unaryiter
+    """unaryiter : unaryop unaryexpr unaryiter
                     | epsilon
-    '''
+    """
     global_tree.append((tuple(['unaryiter'] + p[1:])))
 
+
 def p_unaryop(p):
-    '''unaryop : UNARYOP'''
+    """unaryop : UNARYOP"""
     global_tree.append(('unaryop', p[1]))
 
+
 def p_unaryexpr(p):
-    '''unaryexpr : signal factor
+    """unaryexpr : signal factor
                     | factor
-    '''
+    """
     global_tree.append((tuple(['unaryexpr'] + p[1:])))
 
+
 def p_factor(p):
-    '''factor : INTCONST
+    """factor : INTCONST
                 | FLOATCONST
                 | STRCONST
                 | NULL
                 | lvalue
                 | LPAREN expression RPAREN
-    '''
+    """
     global_tree.append((tuple(['factor'] + p[1:])))
 
+
 def p_lvalue(p):
-    '''lvalue : IDENT
+    """lvalue : IDENT
                 | IDENT expressions
-    '''
+    """
     global_tree.append((tuple(['lvalue'] + p[1:])))
+
 
 # Função de erro para erros sintáticos
 def p_error(p):
@@ -254,16 +291,20 @@ def p_error(p):
 
     exit(1)
 
+
 # Inicializa o analisador sintático
 parser = yacc.yacc()
 
 # Constrói o analisador sintático
 
+
 def build_parser(program):
     with open(program, 'r') as target_file:
         return parser.parse(target_file.read())
 
+
 if __name__ == "__main__":
-    l = build_parser(sys.argv[1])
+    l_tree = build_parser(sys.argv[1])
     print("Success!")
-    print(Scope.actual_scope)
+    print(l_tree)
+    pprint.pprint(Scope.root_scope)
