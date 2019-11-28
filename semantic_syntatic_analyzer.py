@@ -7,7 +7,7 @@ import pprint
 from lex_analyzer import tokens, find_column
 
 global_tree = []
-
+expa_trees = []
 
 class Scope(object):
     root_scope = {'father': None, 'children': [], 'elements': [], 'for': False}
@@ -251,6 +251,7 @@ def p_relationaloperator(p):
 
 def p_numexpression(p):
     """numexpression : term signedterms"""
+    expa_trees.append(p[1:])
     global_tree.append((tuple(['numexpression'] + p[1:])))
 
 
@@ -258,16 +259,26 @@ def p_signedterms(p):
     """signedterms : signal term signedterms
                     | epsilon
     """
+    if len(p) == 4:
+        if p[3] is None:
+            p[0] = p[1:3]
+        else:
+            p[0] = p[1:]
     global_tree.append((tuple(['signedterms'] + p[1:])))
 
 
 def p_signal(p):
     """signal : SIGNAL"""
+    p[0] = p[1]
     global_tree.append(('signal', p[1]))
 
 
 def p_term(p):
     """term : unaryexpr unaryiter"""
+    if p[2] is not None:
+        p[0] = p[1:]
+    else:
+        p[0] = p[1]
     global_tree.append((tuple(['term'] + p[1:])))
 
 
@@ -275,6 +286,10 @@ def p_unaryiter(p):
     """unaryiter : unaryop unaryexpr unaryiter
                     | epsilon
     """
+    if len(p) == 4:
+        p[0] = p[1:]
+    else:
+        p[0] = None
     global_tree.append((tuple(['unaryiter'] + p[1:])))
 
 
@@ -287,6 +302,10 @@ def p_unaryexpr(p):
     """unaryexpr : signal factor
                     | factor
     """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = p[1:]
     global_tree.append((tuple(['unaryexpr'] + p[1:])))
 
 
@@ -298,6 +317,7 @@ def p_factor(p):
                 | lvalue
                 | LPAREN expression RPAREN
     """
+    p[0] = p[1]
     global_tree.append((tuple(['factor'] + p[1:])))
 
 
@@ -339,4 +359,4 @@ def build_parser(program):
 if __name__ == "__main__":
     l_tree = build_parser(sys.argv[1])
     print("Success!")
-    pprint.pprint(Scope.root_scope)
+    pprint.pprint(expa_trees[0])
