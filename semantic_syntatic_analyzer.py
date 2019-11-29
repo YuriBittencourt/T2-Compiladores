@@ -5,9 +5,9 @@ import pprint
 
 # Importar a lista de tokens do analisador léxico
 from lex_analyzer import tokens, find_column
-
+from utils.tree import Tree
 global_tree = []
-expa_trees = []
+expa_list = []
 
 class Scope(object):
     root_scope = {'father': None, 'children': [], 'elements': [], 'for': False}
@@ -234,6 +234,10 @@ def p_expression(p):
     """expression : numexpression
                     | binaryoperator numexpression
     """
+    if len(p) == 3:
+        expa_list.append(p[2])
+    else:
+        expa_list.append(p[1])
     global_tree.append((tuple(['expression'] + p[1:])))
 
 
@@ -251,7 +255,7 @@ def p_relationaloperator(p):
 
 def p_numexpression(p):
     """numexpression : term signedterms"""
-    expa_trees.append(p[1:])
+    p[0] = p[1:]
     global_tree.append((tuple(['numexpression'] + p[1:])))
 
 
@@ -287,7 +291,10 @@ def p_unaryiter(p):
                     | epsilon
     """
     if len(p) == 4:
-        p[0] = p[1:]
+        if p[3] is None:
+            p[0] = p[1:3]
+        else:
+            p[0] = p[1:]
     else:
         p[0] = None
     global_tree.append((tuple(['unaryiter'] + p[1:])))
@@ -295,6 +302,7 @@ def p_unaryiter(p):
 
 def p_unaryop(p):
     """unaryop : UNARYOP"""
+    p[0] = p[1]
     global_tree.append(('unaryop', p[1]))
 
 
@@ -319,7 +327,8 @@ def p_factor(p):
     """
     if len(p) == 4:
         p[0] = p[2]
-    p[0] = p[1]
+    else:
+        p[0] = Tree(p[1])
     global_tree.append((tuple(['factor'] + p[1:])))
 
 
@@ -327,6 +336,7 @@ def p_lvalue(p):
     """lvalue : IDENT
                 | IDENT numexpressions
     """
+    p[0] = "".join(p[1:])
     global_tree.append((tuple(['lvalue'] + p[1:])))
 
 
@@ -362,9 +372,6 @@ if __name__ == "__main__":
     l_tree = build_parser(sys.argv[1])
     print("Success!")
     expa_tree = []
-    for lst in expa_list:
-        t = Tree('root')
-        while lst is not None:
-            t.left = lst[0][0]
+    print(expa_list[-1])
 
 
