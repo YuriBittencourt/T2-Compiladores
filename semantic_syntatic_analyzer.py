@@ -355,8 +355,14 @@ def build_parser(program):
     with open(program, 'r') as target_file:
         return parser.parse(target_file.read())
 
-
+#[[1], ['+', ['-', 2], ['+', [3]]]]
 if __name__ == "__main__":
     l_tree = build_parser(sys.argv[1])
     print("Success!")
-    pprint.pprint(expa_trees[0])
+    expa_tree = []
+    for lst in expa_list:
+        t = Tree('root')
+        while lst is not None:
+            t.left = lst[0][0]
+
+
