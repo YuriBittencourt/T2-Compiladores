@@ -219,15 +219,15 @@ def p_statelist(p):
 
 
 def p_allocexpression(p):
-    """allocexpression : NEW types expressions"""
+    """allocexpression : NEW types numexpressions"""
     global_tree.append((tuple(['allocexpression'] + p[1:])))
 
 
-def p_expressions(p):
-    """expressions : LBRACKET expression RBRACKET expressions
-                    | LBRACKET expression RBRACKET
+def p_numexpressions(p):
+    """numexpressions : LBRACKET numexpression RBRACKET numexpressions
+                    | LBRACKET numexpression RBRACKET
     """
-    global_tree.append((tuple(['expressions'] + p[1:])))
+    global_tree.append((tuple(['numexpressions'] + p[1:])))
 
 
 def p_expression(p):
@@ -315,15 +315,17 @@ def p_factor(p):
                 | STRCONST
                 | NULL
                 | lvalue
-                | LPAREN expression RPAREN
+                | LPAREN numexpression RPAREN
     """
+    if len(p) == 4:
+        p[0] = p[2]
     p[0] = p[1]
     global_tree.append((tuple(['factor'] + p[1:])))
 
 
 def p_lvalue(p):
     """lvalue : IDENT
-                | IDENT expressions
+                | IDENT numexpressions
     """
     global_tree.append((tuple(['lvalue'] + p[1:])))
 
