@@ -243,9 +243,9 @@ def p_numexpressions(p):
                     | LBRACKET numexpression RBRACKET
     """
     if len(p) == 5:
-        p[0] = Tree("[]", p[2], p[4])
+        p[0] = Tree("array", p[2], p[4])
     else:
-        p[0] = Tree("[]", p[2])
+        p[0] = Tree("array", p[2])
     global_tree.append((tuple(['numexpressions'] + p[1:])))
 
 
@@ -398,5 +398,9 @@ def build_parser(program):
 if __name__ == "__main__":
     l_tree = build_parser(sys.argv[1])
     print("Success!")
+    expa_tree = []
+    print("Symbol table: ")
     pprint.pprint(Scope.actual_scope)
+
+    print("Syntax Tree: ")
     print(expa_list)
