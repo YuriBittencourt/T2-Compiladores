@@ -253,10 +253,10 @@ def p_expression(p):
     """expression : numexpression
                     | binaryoperator numexpression
     """
+    index = 1
     if len(p) == 3:
-        expa_list.append(p[2])
-    else:
-        expa_list.append(p[1])
+        index = 2
+    expa_list.append(p[index])
     global_tree.append((tuple(['expression'] + p[1:])))
 
 
@@ -398,6 +398,5 @@ def build_parser(program):
 if __name__ == "__main__":
     l_tree = build_parser(sys.argv[1])
     print("Success!")
-    expa_tree = []
     pprint.pprint(Scope.actual_scope)
     print(expa_list)
