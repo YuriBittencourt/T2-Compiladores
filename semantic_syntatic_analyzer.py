@@ -242,6 +242,10 @@ def p_numexpressions(p):
     """numexpressions : LBRACKET numexpression RBRACKET numexpressions
                     | LBRACKET numexpression RBRACKET
     """
+    if len(p) == 5:
+        p[0] = Tree("[]", p[2], p[4])
+    else:
+        p[0] = Tree("[]", p[2])
     global_tree.append((tuple(['numexpressions'] + p[1:])))
 
 
@@ -270,7 +274,11 @@ def p_relationaloperator(p):
 
 def p_numexpression(p):
     """numexpression : term signedterms"""
-    p[0] = p[1:]
+    if p[2] is None:
+        p[0] = Tree(p[1])
+    else:
+        p[2].left = p[1]
+        p[0] = p[2]
     global_tree.append((tuple(['numexpression'] + p[1:])))
 
 
@@ -280,9 +288,10 @@ def p_signedterms(p):
     """
     if len(p) == 4:
         if p[3] is None:
-            p[0] = p[1:3]
+            p[0] = Tree(p[1], None, p[2])
         else:
-            p[0] = p[1:]
+            p[3].left = p[2]
+            p[0] = Tree(p[1], None, p[3])
     global_tree.append((tuple(['signedterms'] + p[1:])))
 
 
@@ -295,7 +304,8 @@ def p_signal(p):
 def p_term(p):
     """term : unaryexpr unaryiter"""
     if p[2] is not None:
-        p[0] = p[1:]
+        p[2].left = p[1]
+        p[0] = p[2]
     else:
         p[0] = p[1]
     global_tree.append((tuple(['term'] + p[1:])))
@@ -307,11 +317,10 @@ def p_unaryiter(p):
     """
     if len(p) == 4:
         if p[3] is None:
-            p[0] = p[1:3]
+            p[0] = Tree(p[1], None, p[2])
         else:
-            p[0] = p[1:]
-    else:
-        p[0] = None
+            p[3].left = p[2]
+            p[0] = Tree(p[1], None, p[3])
     global_tree.append((tuple(['unaryiter'] + p[1:])))
 
 
@@ -328,7 +337,7 @@ def p_unaryexpr(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = p[1:]
+        p[0] = Tree(p[1], p[2])
     global_tree.append((tuple(['unaryexpr'] + p[1:])))
 
 
@@ -340,7 +349,7 @@ def p_factor(p):
                 | lvalue
                 | LPAREN numexpression RPAREN
     """
-    if len(p) == 4:
+    if len(p) == 4: #se for parenteses conecta essa sub-árvore como filho
         p[0] = p[2]
     else:
         p[0] = Tree(p[1])
@@ -351,7 +360,10 @@ def p_lvalue(p):
     """lvalue : IDENT
                 | IDENT numexpressions
     """
-    p[0] = "".join(p[1:])
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = Tree(p[1], p[2])
     global_tree.append((tuple(['lvalue'] + p[1:])))
 
 
@@ -388,4 +400,4 @@ if __name__ == "__main__":
     print("Success!")
     expa_tree = []
     pprint.pprint(Scope.actual_scope)
-    print(expa_list[-1])
+    print(expa_list)
