@@ -4,21 +4,21 @@ import ply.yacc as yacc
 import pprint
 
 # Importar a lista de tokens do analisador léxico
-from lex_analyzer import tokens
-
+from lex_analyzer import tokens, find_column
+from utils.tree import Tree
+global_tree = []
+expa_list = []
 
 class Scope(object):
-    actual_scope = {'father': "Teste", 'elements': []}
-
-
-global_tree = []
-
+    root_scope = {'father': None, 'children': [], 'elements': [], 'for': False}
+    actual_scope = root_scope
 
 
 def new_scope():
-    print(Scope.actual_scope)
-    Scope.actual_scope = {'father': Scope.actual_scope,
-                     'elements': []}
+    child_scope = {'father': Scope.actual_scope, 'children': [], 'elements': []}
+    Scope.actual_scope['children'].append(child_scope)
+    child_scope['for'] = Scope.actual_scope['for']
+    Scope.actual_scope = child_scope
 
 
 def end_scope():
@@ -27,221 +27,323 @@ def end_scope():
 
 # Define a regra inicial, por padrão o PLY irá usar a primeira regra definida
 def p_program(p):
-    '''program : statement
+    """program : statement
                 | funclist
                 | epsilon
-    '''
+    """
     global_tree.append(('program', p[1]))
 
 
+#essas próximas regras são apenas semânticas
 def p_new_scope(p):
-    '''new_scope :'''
+    """new_scope :"""
     new_scope()
+    if Scope.actual_scope['for']:
+        return
+
+    try:
+        i = -1
+        while str(p[i]) != 'for':
+            i -= 1
+
+        Scope.actual_scope['for'] = True
+
+    except AttributeError:
+        pass
+
 
 def p_end_scope(p):
-    '''end_scope :'''
+    """end_scope :"""
     end_scope()
 
-def p_funclist(p):
-    '''funclist : funcdef funclist
-                | funcdef
-    '''
-    global_tree.append(('funclist', p[1:]))
 
-def p_funcdef(p):
-    '''funcdef : DEF IDENT LPAREN paramlist RPAREN LBRACES new_scope statelist end_scope RBRACES
-    '''
-    global_tree.append(('funcdef', p[1]))
+def p_check_break(p):
+    """check_break :"""
+    if not Scope.actual_scope['for']:
+        print("Semantic error in input! Break without a For statement.")
+        print("Line: %s, Column: %s" % (p.stack[-1].lineno, find_column(p.lexer.lexdata,p.stack[-1])))
 
-def p_paramlist(p):
-    '''paramlist : types IDENT paramlistiter
-                | epsilon
-    '''
-    global_tree.append(('paramlist', p[1:]))
+        exit(-1)
 
-def p_paramlistiter(p):
-    '''paramlistiter : COMMA types IDENT paramlistiter
-                | epsilon
-    '''
-    global_tree.append(('paramlistiter', p[1:]))
 
-# Define a regra vazia
-def p_epsilon(p):
-    'epsilon :'
-    global_tree.append(('epsilon'))
 
 # Define as regras restantes da linguagem
 def p_statement(p):
-    '''statement : vardecl SEMICOLON
-                 | atribstat SEMICOLON
-                 | printstat SEMICOLON
-                 | readstat SEMICOLON
-                 | returnstat SEMICOLON
-                 | ifstat
-                 | forstat
-                 | LBRACES new_scope statelist end_scope RBRACES
-                 | BREAK SEMICOLON
-                 | SEMICOLON
-    '''
+    """statement : oneline
+                    | LBRACES new_scope statelist end_scope RBRACES"""
     global_tree.append((tuple(['statement'] + p[1:])))
 
+
+def p_scopestatement(p):
+    """scopestatement :  new_scope oneline end_scope
+                        | LBRACES new_scope statelist end_scope RBRACES
+    """
+
+
+def p_oneline(p):
+    """oneline : vardecl SEMICOLON
+                            | atribstat SEMICOLON
+                            | printstat SEMICOLON
+                            | readstat SEMICOLON
+                            | returnstat SEMICOLON
+                            | ifstat
+                            | forstat
+                            | BREAK SEMICOLON check_break
+                            | SEMICOLON
+    """
+
+def p_funclist(p):
+    """funclist : funcdef funclist
+                | funcdef
+    """
+    global_tree.append(('funclist', p[1:]))
+
+
+def p_funcdef(p):
+    """funcdef : DEF IDENT LPAREN paramlist RPAREN LBRACES new_scope statelist end_scope RBRACES
+    """
+    global_tree.append(('funcdef', p[1]))
+
+
+def p_paramlist(p):
+    """paramlist : types IDENT paramlistiter
+                | epsilon
+    """
+    global_tree.append(('paramlist', p[1:]))
+
+
+def p_paramlistiter(p):
+    """paramlistiter : COMMA types IDENT paramlistiter
+                | epsilon
+    """
+    global_tree.append(('paramlistiter', p[1:]))
+
+
+# Define a regra vazia
+def p_epsilon(p):
+    """epsilon :"""
+    global_tree.append(('epsilon'))
+
+
 def p_vardecl(p):
-    'vardecl : types IDENT integer'
+    """vardecl : types IDENT integer"""
     global_tree.append(('vardecl', p[1], p[2], p[3]))
 
+
 def p_types_int(p):
-    'types : INT'
+    """types : INT"""
     global_tree.append(('type', p[1]))
+
 
 def p_types_float(p):
-    'types : FLOAT'
+    """types : FLOAT"""
     global_tree.append(('type', p[1]))
+
 
 def p_types_string(p):
-    'types : STRING'
+    """types : STRING"""
     global_tree.append(('type', p[1]))
 
+
 def p_integer(p):
-    '''integer : LBRACKET INTCONST RBRACKET integer
+    """integer : LBRACKET INTCONST RBRACKET integer
             | epsilon
-    '''
+    """
     global_tree.append((tuple(['integer'] + p[1:])))
 
+
 def p_atribstat(p):
-    '''atribstat : lvalue ATRIB expression
+    """atribstat : lvalue ATRIB expression
                     | lvalue ATRIB allocexpression
                     | lvalue ATRIB funccall
-    '''
+    """
     global_tree.append((tuple(['atribstat'] + p[1:])))
 
+
 def p_funccall(p):
-    'funccall : IDENT LPAREN paramlistcall RPAREN'
+    """funccall : IDENT LPAREN paramlistcall RPAREN"""
     global_tree.append(('funccall', p[1], p[2], p[3], p[4]))
 
+
 def p_paramlistcall(p):
-    '''paramlistcall : IDENT paramlistcalliter
+    """paramlistcall : IDENT paramlistcalliter
                         | epsilon
-    '''
+    """
     global_tree.append(('paramlistcall', p[1:]))
+
 
 def p_paramlistcalliter(p):
-    '''paramlistcalliter : COMMA IDENT paramlistcalliter
+    """paramlistcalliter : COMMA IDENT paramlistcalliter
                         | epsilon
-    '''
+    """
     global_tree.append(('paramlistcall', p[1:]))
 
+
 def p_printstat(p):
-    'printstat : PRINT expression'
+    """printstat : PRINT expression"""
     global_tree.append((tuple(['printstat'] + p[1:])))
 
+
 def p_readstat(p):
-    'readstat : READ lvalue'
+    """readstat : READ lvalue"""
     global_tree.append((tuple(['readstat'] + p[1:])))
 
+
 def p_returnstat(p):
-    'returnstat : RETURN'
+    """returnstat : RETURN"""
     global_tree.append(('returnstat', p[1]))
 
+
 def p_ifstat(p):
-    'ifstat : IF LPAREN expression RPAREN statement else'
+    """ifstat : IF LPAREN expression RPAREN scopestatement else"""
     global_tree.append((tuple(['ifstat'] + p[1:])))
 
+
 def p_else(p):
-    '''else : ELSE statement
+    """else : ELSE scopestatement
             | epsilon
-    '''
+    """
     global_tree.append((tuple(['else'] + p[1:])))
 
+
 def p_forstat(p):
-    'forstat : FOR LPAREN atribstat SEMICOLON expression SEMICOLON atribstat RPAREN statement'
+    """forstat : FOR LPAREN atribstat SEMICOLON expression SEMICOLON atribstat RPAREN scopestatement"""
     global_tree.append((tuple(['forstat'] + p[1:])))
 
+
 def p_statelist(p):
-    '''statelist : statement
+    """statelist : statement
                     | statement statelist
-    '''
+    """
     global_tree.append((tuple(['statelist'] + p[1:])))
 
+
 def p_allocexpression(p):
-    'allocexpression : NEW types expressions'
+    """allocexpression : NEW types numexpressions"""
     global_tree.append((tuple(['allocexpression'] + p[1:])))
 
-def p_expressions(p):
-    '''expressions : LBRACKET expression RBRACKET expressions
-                    | LBRACKET expression RBRACKET
-    '''
-    global_tree.append((tuple(['expressions'] + p[1:])))
+
+def p_numexpressions(p):
+    """numexpressions : LBRACKET numexpression RBRACKET numexpressions
+                    | LBRACKET numexpression RBRACKET
+    """
+    global_tree.append((tuple(['numexpressions'] + p[1:])))
+
 
 def p_expression(p):
-    '''expression : numexpression
+    """expression : numexpression
                     | binaryoperator numexpression
-    '''
+    """
+    if len(p) == 3:
+        expa_list.append(p[2])
+    else:
+        expa_list.append(p[1])
     global_tree.append((tuple(['expression'] + p[1:])))
 
+
 def p_binaryoperator(p):
-    '''binaryoperator : numexpression relationaloperator
+    """binaryoperator : numexpression relationaloperator
                         | epsilon
-    '''
+    """
     global_tree.append((tuple(['binaryoperator'] + p[1:])))
 
+
 def p_relationaloperator(p):
-    '''relationaloperator : RELOP'''
+    """relationaloperator : RELOP"""
     global_tree.append(('relationaloperator', p[1]))
 
+
 def p_numexpression(p):
-    '''numexpression : term signedterms'''
+    """numexpression : term signedterms"""
+    p[0] = p[1:]
     global_tree.append((tuple(['numexpression'] + p[1:])))
 
+
 def p_signedterms(p):
-    '''signedterms : signal term signedterms
+    """signedterms : signal term signedterms
                     | epsilon
-    '''
+    """
+    if len(p) == 4:
+        if p[3] is None:
+            p[0] = p[1:3]
+        else:
+            p[0] = p[1:]
     global_tree.append((tuple(['signedterms'] + p[1:])))
 
+
 def p_signal(p):
-    '''signal : SIGNAL'''
+    """signal : SIGNAL"""
+    p[0] = p[1]
     global_tree.append(('signal', p[1]))
 
+
 def p_term(p):
-    '''term : unaryexpr unaryiter'''
+    """term : unaryexpr unaryiter"""
+    if p[2] is not None:
+        p[0] = p[1:]
+    else:
+        p[0] = p[1]
     global_tree.append((tuple(['term'] + p[1:])))
 
+
 def p_unaryiter(p):
-    '''unaryiter : unaryop unaryexpr unaryiter
+    """unaryiter : unaryop unaryexpr unaryiter
                     | epsilon
-    '''
+    """
+    if len(p) == 4:
+        if p[3] is None:
+            p[0] = p[1:3]
+        else:
+            p[0] = p[1:]
+    else:
+        p[0] = None
     global_tree.append((tuple(['unaryiter'] + p[1:])))
 
+
 def p_unaryop(p):
-    '''unaryop : UNARYOP'''
+    """unaryop : UNARYOP"""
+    p[0] = p[1]
     global_tree.append(('unaryop', p[1]))
 
+
 def p_unaryexpr(p):
-    '''unaryexpr : signal factor
+    """unaryexpr : signal factor
                     | factor
-    '''
+    """
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = p[1:]
     global_tree.append((tuple(['unaryexpr'] + p[1:])))
 
+
 def p_factor(p):
-    '''factor : INTCONST
+    """factor : INTCONST
                 | FLOATCONST
                 | STRCONST
                 | NULL
                 | lvalue
-                | LPAREN expression RPAREN
-    '''
+                | LPAREN numexpression RPAREN
+    """
+    if len(p) == 4:
+        p[0] = p[2]
+    else:
+        p[0] = Tree(p[1])
     global_tree.append((tuple(['factor'] + p[1:])))
 
+
 def p_lvalue(p):
-    '''lvalue : IDENT
-                | IDENT expressions
-    '''
+    """lvalue : IDENT
+                | IDENT numexpressions
+    """
+    p[0] = "".join(p[1:])
     global_tree.append((tuple(['lvalue'] + p[1:])))
+
 
 # Função de erro para erros sintáticos
 def p_error(p):
     print("Syntax error in input! Token: %s" % (p,))
-    print("Line: %s, Column: %s" % (p.lineno, p.lexpos))
+    print("Line: %s, Column: %s" % (p.lineno, find_column(p.lexer.lexdata, p)-1))
 
     if len(global_tree) == 0:
         print("Error production: %s" % (parser.productions[1],))
@@ -254,16 +356,22 @@ def p_error(p):
 
     exit(1)
 
+
 # Inicializa o analisador sintático
 parser = yacc.yacc()
 
 # Constrói o analisador sintático
 
+
 def build_parser(program):
     with open(program, 'r') as target_file:
         return parser.parse(target_file.read())
 
+#[[1], ['+', ['-', 2], ['+', [3]]]]
 if __name__ == "__main__":
-    l = build_parser(sys.argv[1])
+    l_tree = build_parser(sys.argv[1])
     print("Success!")
-    print(Scope.actual_scope)
+    expa_tree = []
+    print(expa_list[-1])
+
+
