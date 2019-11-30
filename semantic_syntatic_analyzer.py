@@ -127,21 +127,36 @@ def p_epsilon(p):
 
 def p_vardecl(p):
     """vardecl : types IDENT integer"""
+    for element in Scope.actual_scope['elements']:
+        # Verifica se já existe variável no escopo com o mesmo nome
+        if element['name'] == p[2]:
+            print("Semantic error in input! Variable '{}' already declared in scope.".format(element['name']))
+            # Procura pelo último terminal na pilha para dar a linha/coluna do erro de escopo
+            for stack_element in p.stack[::-1]:
+                if(isinstance(stack_element, lex.LexToken) == True):
+                    print("Line: %s, Column: %s" % (stack_element.lineno,
+                                                    find_column(p.lexer.lexdata, stack_element)))
+                    exit(-1)
+
+    Scope.actual_scope['elements'].append({'type': p[1], 'name': p[2]})
     global_tree.append(('vardecl', p[1], p[2], p[3]))
 
 
 def p_types_int(p):
     """types : INT"""
+    p[0] = p[1]
     global_tree.append(('type', p[1]))
 
 
 def p_types_float(p):
     """types : FLOAT"""
+    p[0] = p[1]
     global_tree.append(('type', p[1]))
 
 
 def p_types_string(p):
     """types : STRING"""
+    p[0] = p[1]
     global_tree.append(('type', p[1]))
 
 
@@ -372,6 +387,5 @@ if __name__ == "__main__":
     l_tree = build_parser(sys.argv[1])
     print("Success!")
     expa_tree = []
+    pprint.pprint(Scope.actual_scope)
     print(expa_list[-1])
-
-
