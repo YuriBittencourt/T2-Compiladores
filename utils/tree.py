@@ -6,13 +6,13 @@ class Tree(object):
         self.right = right
 
     def __str__(self):
-        res = self.name
+        res = str(self.name)
         if self.left is not None:
             res += ";" + str(self.left)
         if self.right is not None:
             res += ";" + str(self.right)
         return res
 
-
-
+    def __repr__(self):
+        return str(self)
 
