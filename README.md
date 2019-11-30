@@ -1,19 +1,25 @@
 # T2-Compiladores
 
-With Python3:
+## Executing With Makefile:
 
 ```
-pip3 install --local ply
-pip3 install --local pprint
+make -f make FILE="examples/ex1.ccc"
+```
+
+## With Python3:
+
+```
+pip3 install --user ply
+pip3 install --user pprint
 
 python3 python3 semantic_syntatic_analyzer.py examples/ex1.ccc
 ```
 
-With Python < 3:
+## With Python < 3:
 
 ```
-pip install --local ply
-pip install --local pprint
+pip install --user ply
+pip install --user pprint
 
 python python3 semantic_syntatic_analyzer.py examples/ex1.ccc
 ```
