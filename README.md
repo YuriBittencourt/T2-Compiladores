@@ -21,5 +21,5 @@ python3 python3 semantic_syntatic_analyzer.py examples/ex1.ccc
 pip install --user ply
 pip install --user pprint
 
-python python3 semantic_syntatic_analyzer.py examples/ex1.ccc
+python python semantic_syntatic_analyzer.py examples/ex1.ccc
 ```

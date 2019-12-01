@@ -1,6 +1,7 @@
 class Tree(object):
 
     def __init__(self, name, left=None, right=None):
+        self.type = None
         self.name = name
         self.left = left
         self.right = right
