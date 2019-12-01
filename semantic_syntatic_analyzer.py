@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 import sys
 import ply.yacc as yacc
+import ply.lex as lex
 import pprint
 
 # Importar a lista de tokens do analisador léxico
 from lex_analyzer import tokens, find_column
 from utils.tree import Tree
+
+
 global_tree = []
 expa_list = []
+
 
 class Scope(object):
     root_scope = {'father': None, 'children': [], 'elements': [], 'for': False}
@@ -25,6 +29,26 @@ def end_scope():
     Scope.actual_scope = Scope.actual_scope['father']
 
 
+def find_var(name, scope):
+    for e in scope['elements']:
+        if e['name'] == name:
+            return e
+    if scope['father'] is None:
+        return None
+    return find_var(name, scope['father'])
+
+
+def semantic_error(reason, p):
+    print("Semantic error in input!", reason)
+    for stack_element in p.stack[::-1]:
+        if (isinstance(stack_element, lex.LexToken) == True):
+            print("Line: %s, Column: %s" % (stack_element.lineno,
+                                            find_column(p.lexer.lexdata, stack_element)))
+            break;
+    exit(-1)
+
+
+
 # Define a regra inicial, por padrão o PLY irá usar a primeira regra definida
 def p_program(p):
     """program : statement
@@ -34,7 +58,7 @@ def p_program(p):
     global_tree.append(('program', p[1]))
 
 
-#essas próximas regras são apenas semânticas
+#essas próximas regras são apenas semânticas, perceba pela cauda da regra ser vazia
 def p_new_scope(p):
     """new_scope :"""
     new_scope()
@@ -60,11 +84,15 @@ def p_end_scope(p):
 def p_check_break(p):
     """check_break :"""
     if not Scope.actual_scope['for']:
-        print("Semantic error in input! Break without a For statement.")
-        print("Line: %s, Column: %s" % (p.stack[-1].lineno, find_column(p.lexer.lexdata,p.stack[-1])))
+        semantic_error("Break without a For statement.", p)
 
-        exit(-1)
 
+def p_verify_decl(p):
+    """verify_decl : """
+    for element in Scope.actual_scope['elements']:
+        # Verifica se já existe variável no escopo com o mesmo nome
+        if element['name'] == p[-1]:
+            semantic_error("Variable '{}' already declared in this scope.".format(element['name']), p)
 
 
 # Define as regras restantes da linguagem
@@ -126,17 +154,7 @@ def p_epsilon(p):
 
 
 def p_vardecl(p):
-    """vardecl : types IDENT integer"""
-    for element in Scope.actual_scope['elements']:
-        # Verifica se já existe variável no escopo com o mesmo nome
-        if element['name'] == p[2]:
-            print("Semantic error in input! Variable '{}' already declared in scope.".format(element['name']))
-            # Procura pelo último terminal na pilha para dar a linha/coluna do erro de escopo
-            for stack_element in p.stack[::-1]:
-                if(isinstance(stack_element, lex.LexToken) == True):
-                    print("Line: %s, Column: %s" % (stack_element.lineno,
-                                                    find_column(p.lexer.lexdata, stack_element)))
-                    exit(-1)
+    """vardecl : types IDENT verify_decl integer """
 
     Scope.actual_scope['elements'].append({'type': p[1], 'name': p[2]})
     global_tree.append(('vardecl', p[1], p[2], p[3]))
@@ -353,6 +371,7 @@ def p_factor(p):
         p[0] = p[2]
     else:
         p[0] = Tree(p[1])
+        p[0].type = type(p[1])
     global_tree.append((tuple(['factor'] + p[1:])))
 
 
@@ -360,6 +379,9 @@ def p_lvalue(p):
     """lvalue : IDENT
                 | IDENT numexpressions
     """
+    e = find_var(p[1], Scope.actual_scope)
+    if e is None:
+        semantic_error("variable \'{}\' not declared.".format(p[1]), p)
     if len(p) == 2:
         p[0] = p[1]
     else:
@@ -398,7 +420,6 @@ def build_parser(program):
 if __name__ == "__main__":
     l_tree = build_parser(sys.argv[1])
     print("Success!")
-    expa_tree = []
     print("Symbol table: ")
     pprint.pprint(Scope.actual_scope)
 
