@@ -371,7 +371,6 @@ def p_factor(p):
         p[0] = p[2]
     else:
         p[0] = Tree(p[1])
-        p[0].type = type(p[1])
     global_tree.append((tuple(['factor'] + p[1:])))
 
 
@@ -379,9 +378,9 @@ def p_lvalue(p):
     """lvalue : IDENT
                 | IDENT numexpressions
     """
-    e = find_var(p[1], Scope.actual_scope)
-    if e is None:
+    if find_var(p[1], Scope.actual_scope) is None:
         semantic_error("variable \'{}\' not declared.".format(p[1]), p)
+
     if len(p) == 2:
         p[0] = p[1]
     else:
