@@ -78,7 +78,6 @@ def tree_type(tree):
         if tipo == type(int()):
             return 'int'
 
-        print(tree, print(tl), print(tr))
         return type(tree.name)
 
     if tl is not None and tl == tr:
@@ -413,7 +412,7 @@ def p_factor(p):
     if len(p) == 4: #se for parenteses conecta essa sub-árvore como filho
         p[0] = p[2]
     else:
-        p[0] = Tree(p[1])
+        p[0] = p[1]
     global_tree.append((tuple(['factor'] + p[1:])))
 
 
