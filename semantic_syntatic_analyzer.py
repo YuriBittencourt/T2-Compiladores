@@ -48,6 +48,47 @@ def semantic_error(reason, p):
     exit(-1)
 
 
+def tree_type(tree):
+    tl = tr = None
+
+    if tree.left is not None and tree.left.name == 'array':
+        identificador = find_var(tree.name, Scope.actual_scope)
+        return identificador['type']
+
+    if tree.left is not None:
+        tl = tree_type(tree.left)
+
+    if tree.right is not None:
+        tr = tree_type(tree.right)
+
+    if tl is None and tl == tr:
+        if tree.name == 'null':
+            return 'null'
+
+        if type(tree.name) == str and tree.name[0] == '"':
+            return 'string'
+
+        if type(tree.name) == str:
+            identificador = find_var(tree.name, Scope.actual_scope)
+            return identificador['type']
+
+        tipo = type(tree.name)
+        if tipo == type(float()):
+            return 'float'
+        if tipo == type(int()):
+            return 'int'
+
+        print(tree, print(tl), print(tr))
+        return type(tree.name)
+
+    if tl is not None and tl == tr:
+        return tl
+
+    if tr is None:
+        return tl
+
+    return -1
+
 
 # Define a regra inicial, por padrão o PLY irá usar a primeira regra definida
 def p_program(p):
@@ -274,6 +315,7 @@ def p_expression(p):
     index = 1
     if len(p) == 3:
         index = 2
+    print(tree_type(p[index]))
     expa_list.append(p[index])
     global_tree.append((tuple(['expression'] + p[1:])))
 
@@ -282,6 +324,7 @@ def p_binaryoperator(p):
     """binaryoperator : numexpression relationaloperator
                         | epsilon
     """
+    p[0] = p[1]
     global_tree.append((tuple(['binaryoperator'] + p[1:])))
 
 
@@ -293,7 +336,7 @@ def p_relationaloperator(p):
 def p_numexpression(p):
     """numexpression : term signedterms"""
     if p[2] is None:
-        p[0] = Tree(p[1])
+        p[0] = p[1]
     else:
         p[2].left = p[1]
         p[0] = p[2]
@@ -371,7 +414,6 @@ def p_factor(p):
         p[0] = p[2]
     else:
         p[0] = Tree(p[1])
-        p[0].type = type(p[1])
     global_tree.append((tuple(['factor'] + p[1:])))
 
 
@@ -379,9 +421,9 @@ def p_lvalue(p):
     """lvalue : IDENT
                 | IDENT numexpressions
     """
-    e = find_var(p[1], Scope.actual_scope)
-    if e is None:
+    if find_var(p[1], Scope.actual_scope) is None:
         semantic_error("variable \'{}\' not declared.".format(p[1]), p)
+
     if len(p) == 2:
         p[0] = p[1]
     else:
