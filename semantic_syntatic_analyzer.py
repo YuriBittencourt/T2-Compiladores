@@ -179,6 +179,7 @@ def p_paramlist(p):
     """paramlist : types IDENT paramlistiter
                 | epsilon
     """
+    Scope.actual_scope['elements'].append({'type': p[1], 'name': p[2]})
     global_tree.append(('paramlist', p[1:]))
 
 
@@ -186,6 +187,8 @@ def p_paramlistiter(p):
     """paramlistiter : COMMA types IDENT paramlistiter
                 | epsilon
     """
+    if len(p) == 5:
+        Scope.actual_scope['elements'].append({'type': p[2], 'name': p[3]})
     global_tree.append(('paramlistiter', p[1:]))
 
 
