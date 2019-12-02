@@ -41,7 +41,7 @@ def find_var(name, scope):
 def semantic_error(reason, p):
     print("Semantic error in input!", reason)
     for stack_element in p.stack[::-1]:
-        if (isinstance(stack_element, lex.LexToken) == True):
+        if isinstance(stack_element, lex.LexToken):
             print("Line: %s, Column: %s" % (stack_element.lineno,
                                             find_column(p.lexer.lexdata, stack_element)))
             break;
@@ -51,9 +51,29 @@ def semantic_error(reason, p):
 def tree_type(tree):
     tl = tr = None
 
-    if tree.left is not None and tree.left.name == 'array':
-        identificador = find_var(tree.name, Scope.actual_scope)
-        return identificador['type']
+    if type(tree) is not Tree:
+        var_type = type(tree)
+        if var_type == float:
+            return 'float'
+
+        if var_type == int:
+            return 'int'
+
+        if tree == 'null':
+            return 'null'
+
+        if type(tree) == str and tree[0] == '"':
+            return 'string'
+
+        if type(tree) == str:
+            identifier = find_var(tree, Scope.actual_scope)
+            return identifier['type']
+
+    if tree.left is not None and type(tree.left) == Tree and tree.left.name == 'array':
+        if tree_type(tree.left) == 'int':
+            identifier = find_var(tree.name, Scope.actual_scope)
+            return identifier['type']
+        return None
 
     if tree.left is not None:
         tl = tree_type(tree.left)
@@ -61,25 +81,7 @@ def tree_type(tree):
     if tree.right is not None:
         tr = tree_type(tree.right)
 
-    if tl is None and tl == tr:
-        if tree.name == 'null':
-            return 'null'
-
-        if type(tree.name) == str and tree.name[0] == '"':
-            return 'string'
-
-        if type(tree.name) == str:
-            identificador = find_var(tree.name, Scope.actual_scope)
-            return identificador['type']
-
-        tipo = type(tree.name)
-        if tipo == type(float()):
-            return 'float'
-        if tipo == type(int()):
-            return 'int'
-
-        return type(tree.name)
-
+    print(tl, tr)
     if tl is not None and tl == tr:
         return tl
 
@@ -314,7 +316,11 @@ def p_expression(p):
     index = 1
     if len(p) == 3:
         index = 2
-    print(tree_type(p[index]))
+        if tree_type(p[1]) != tree_type(p[2]):
+            semantic_error("Type mismatch", p)
+
+    if tree_type(p[index]) == -1:
+        semantic_error("Type mismatch", p)
     expa_list.append(p[index])
     global_tree.append((tuple(['expression'] + p[1:])))
 
