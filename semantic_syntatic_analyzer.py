@@ -14,8 +14,7 @@ expa_list = []
 
 
 class Scope(object):
-    root_scope = {'father': None, 'children': [], 'elements': [], 'for': False}
-    actual_scope = root_scope
+    actual_scope = {'father': None, 'children': [], 'elements': [], 'for': False}
 
 
 def new_scope():
@@ -28,7 +27,8 @@ def new_scope():
 def end_scope():
     Scope.actual_scope = Scope.actual_scope['father']
 
-
+#procura uma entrada na tabela de símbolos do escopo atual e se não achar procura no escopo superior
+#se a recursão chegar até o escopo mais externo, global, então não existe a entrada.
 def find_var(name, scope):
     for e in scope['elements']:
         if e['name'] == name:
@@ -178,7 +178,8 @@ def p_paramlist(p):
     """paramlist : types IDENT paramlistiter
                 | epsilon
     """
-    Scope.actual_scope['elements'].append({'type': p[1], 'name': p[2]})
+    if len(p) == 4:
+        Scope.actual_scope['elements'].append({'type': p[1], 'name': p[2]})
     global_tree.append(('paramlist', p[1:]))
 
 
@@ -465,7 +466,7 @@ def build_parser(program):
     with open(program, 'r') as target_file:
         return parser.parse(target_file.read())
 
-#[[1], ['+', ['-', 2], ['+', [3]]]]
+
 if __name__ == "__main__":
     l_tree = build_parser(sys.argv[1])
     print("Success! All arithmetic expressions contain only valid types")
@@ -473,6 +474,6 @@ if __name__ == "__main__":
     print("Success! No break statement outside of a loop")
     print("Symbol table:")
     pprint.pprint(Scope.actual_scope)
-    print("Syntax Tree:")
+    print("Syntax Tree for every arithmetic expression:")
     print(expa_list)
     print("Compilation Successful!")
