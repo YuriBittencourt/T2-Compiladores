@@ -73,7 +73,7 @@ def tree_type(tree):
         if tree_type(tree.left) == 'int':
             identifier = find_var(tree.name, Scope.actual_scope)
             return identifier['type']
-        return None
+        return -1
 
     if tree.left is not None:
         tl = tree_type(tree.left)
@@ -330,7 +330,6 @@ def p_expression(p):
 
 def p_binaryoperator(p):
     """binaryoperator : numexpression relationaloperator
-                        | epsilon
     """
     p[0] = p[1]
     global_tree.append((tuple(['binaryoperator'] + p[1:])))
