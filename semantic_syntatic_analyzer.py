@@ -81,7 +81,6 @@ def tree_type(tree):
     if tree.right is not None:
         tr = tree_type(tree.right)
 
-    print(tl, tr)
     if tl is not None and tl == tr:
         return tl
 
@@ -469,9 +468,11 @@ def build_parser(program):
 #[[1], ['+', ['-', 2], ['+', [3]]]]
 if __name__ == "__main__":
     l_tree = build_parser(sys.argv[1])
-    print("Success!")
-    print("Symbol table: ")
+    print("Success! All arithmetic expressions contain only valid types")
+    print("Success! All Variables declared correctly in scope")
+    print("Success! No break statement outside of a loop")
+    print("Symbol table:")
     pprint.pprint(Scope.actual_scope)
-
-    print("Syntax Tree: ")
+    print("Syntax Tree:")
     print(expa_list)
+    print("Compilation Successful!")
