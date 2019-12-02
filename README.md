@@ -14,7 +14,7 @@ make FILE="examples/ex1.ccc"
 pip3 install --user ply
 pip3 install --user pprint
 
-python3 python3 semantic_syntatic_analyzer.py examples/ex1.ccc
+python3 semantic_syntatic_analyzer.py examples/ex1.ccc
 ```
 
 ## With Python < 3:
@@ -23,5 +23,5 @@ python3 python3 semantic_syntatic_analyzer.py examples/ex1.ccc
 pip install --user ply
 pip install --user pprint
 
-python python semantic_syntatic_analyzer.py examples/ex1.ccc
+python semantic_syntatic_analyzer.py examples/ex1.ccc
 ```
