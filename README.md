@@ -1,9 +1,11 @@
 # T2-Compiladores
 
 ## Executing With Makefile:
+- Choose a example file from the `examples` folder and pass it as `FILE="example/file.ccc"`
+
 
 ```
-make -f make FILE="examples/ex1.ccc"
+make FILE="examples/ex1.ccc"
 ```
 
 ## With Python3:
