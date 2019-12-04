@@ -96,6 +96,7 @@ def p_program(p):
                 | funclist
                 | epsilon
     """
+    p[0] = p[1]
     global_tree.append(('program', p[1]))
 
 
@@ -115,6 +116,8 @@ def p_new_scope(p):
 
     except AttributeError:
         pass
+
+    p[0] = Scope.actual_scope
 
 
 def p_end_scope(p):
@@ -140,6 +143,12 @@ def p_verify_decl(p):
 def p_statement(p):
     """statement : oneline
                     | LBRACES new_scope statelist end_scope RBRACES"""
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        if p[3] is not None:
+            p[3].scope = p[2]
+        p[0] = p[3]
     global_tree.append((tuple(['statement'] + p[1:])))
 
 
@@ -147,6 +156,14 @@ def p_scopestatement(p):
     """scopestatement :  new_scope oneline end_scope
                         | LBRACES new_scope statelist end_scope RBRACES
     """
+    if len(p) == 4:
+        if p[2] is not None:
+            p[2].scope = p[1]
+        p[0] = p[2]
+    else:
+        if p[3] is not None:
+            p[3].scope = p[2]
+        p[0] = p[3]
 
 
 def p_oneline(p):
@@ -160,17 +177,25 @@ def p_oneline(p):
                             | BREAK SEMICOLON check_break
                             | SEMICOLON
     """
+    if p[1] != ";":
+        p[0] = p[1]
+
 
 def p_funclist(p):
     """funclist : funcdef funclist
                 | funcdef
     """
+    if len(p) == 3:
+        p[0] = Tree('funclist', p[1], p[2])
+    else:
+        p[0] = p[1]
     global_tree.append(('funclist', p[1:]))
 
 
 def p_funcdef(p):
     """funcdef : DEF IDENT LPAREN paramlist RPAREN LBRACES new_scope statelist end_scope RBRACES
     """
+
     global_tree.append(('funcdef', p[1]))
 
 
@@ -316,27 +341,33 @@ def p_expression(p):
     """expression : numexpression
                     | binaryoperator numexpression
     """
-    index = 1
     if len(p) == 3:
-        index = 2
-        if tree_type(p[1]) != tree_type(p[2]):
-            semantic_error("Type mismatch", p)
+        p[1].right = p[2]
 
-    if tree_type(p[index]) == -1:
+    if tree_type(p[1]) == -1:
         semantic_error("Type mismatch", p)
-    expa_list.append(p[index])
+
+    p[0] = p[1]
+    if len(p) == 3:
+        #adicionar os filhos na árvore, já que RELOP não está em EXPA, isso significa que:
+        # 1 + 3 > 2 + 1 ao invés de ser 1 árvore com a raíz '>', serão 2 árvores com raízes sendo o '+'
+        expa_list.append(p[1].left)
+        expa_list.append(p[1].right)
+    else:
+        expa_list.append(p[1])
     global_tree.append((tuple(['expression'] + p[1:])))
 
 
 def p_binaryoperator(p):
     """binaryoperator : numexpression relationaloperator
     """
-    p[0] = p[1]
+    p[0] = Tree(p[2],p[1])
     global_tree.append((tuple(['binaryoperator'] + p[1:])))
 
 
 def p_relationaloperator(p):
     """relationaloperator : RELOP"""
+    p[0] = p[1]
     global_tree.append(('relationaloperator', p[1]))
 
 
