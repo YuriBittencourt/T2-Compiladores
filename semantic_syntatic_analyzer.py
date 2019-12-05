@@ -351,17 +351,17 @@ def p_expression(p):
     if len(p) == 3:
         #adicionar os filhos na árvore, já que RELOP não está em EXPA, isso significa que:
         # 1 + 3 > 2 + 1 ao invés de ser 1 árvore com a raíz '>', serão 2 árvores com raízes sendo o '+'
-        expa_list.append(p[1].left)
-        expa_list.append(p[1].right)
+        expa_list.append(str(p[1].left))
+        expa_list.append(str(p[1].right))
     else:
-        expa_list.append(p[1])
+        expa_list.append(str(p[1]))
     global_tree.append((tuple(['expression'] + p[1:])))
 
 
 def p_binaryoperator(p):
     """binaryoperator : numexpression relationaloperator
     """
-    p[0] = Tree(p[2],p[1])
+    p[0] = Tree(p[2], p[1])
     global_tree.append((tuple(['binaryoperator'] + p[1:])))
 
 
