@@ -1,0 +1,100 @@
+def sum_k(int arr, int arr_size, int stepping, int k){
+        int i;
+        for(i = 0; i < arr_size; i = i + stepping){
+            arr[i] = arr[i] + k;
+        }
+    }
+
+def even(){
+        int even;
+        int i;
+        int end;
+        end = 100000;
+        for(i = 0; i < end; i = i + 1){
+            if (i % 2 == 0){
+                even = i;
+                print even;
+            }
+            else
+                print "Not even";
+        }
+    }
+
+def matrix(int dimension){
+        int m;
+        m = new int[dimension][dimension][dimension][dimension];
+        int i;
+        int j;
+        int k;
+        int l;
+        for(i = 0; i < 3; i = i + 1){
+            for(j = 0; j < 3; j = j + 1){
+                for(k = 0; k < 3; k = k + 1){
+                    for(l = 0; l < 3; l = l + 1){
+                        print m[i][j][k][l];
+                    }
+                }
+            }
+        }
+    }
+
+def hello_world(){
+        print "Hello World";
+        return;
+}
+
+def greater(int a, int b){
+
+        if (a > b){
+            print "a é maior que b";
+        }
+
+        if (a < b){
+            print "b é maior que a";
+        }
+
+        if (a == b){
+            print "a é igual a b";
+        }
+
+        return;
+}
+
+def pow_test(){
+        int base;
+        int pow;
+        int res;
+        int i;
+        res = 1;
+        base = 2;
+        pow = 10;
+
+        for(i = 0; i < pow; i = i + 1)
+        {
+            res = res * base;
+        }
+}
+
+ def calc_radius_and_circumference(float area){
+        float pi;
+        float circumference;
+        float radius;
+
+        pi = 3.14159;
+        radius = 2.0;
+
+        circumference = 2.0 * pi * radius;
+        area = pi * radius * radius;
+}
+
+def recur_gcd(int a, int b){
+    if (b == 0)
+        print a;
+        return;
+    else{
+        int a_mod_b;
+        a_mod_b = a % b;
+        a = recur_gcd(b, a_mod_b);
+        return;
+    }
+}
