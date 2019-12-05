@@ -35,8 +35,6 @@ def pot(int n, int pot, int res){
 }
 
 def atrib_test(float x, float z){
-  float x;
-  float z;
   int i;
   int max;
   x = 0.0;

@@ -30,7 +30,7 @@ def foo(){
     }
 }
 
-def bar(int x, int d, int i, int t){
+def bar(int x, int d, int i){
     string pt2;
     pt2 = "Parte 2";
 
