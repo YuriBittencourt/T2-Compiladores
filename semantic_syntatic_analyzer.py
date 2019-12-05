@@ -86,7 +86,8 @@ def tree_type(tree):
 
     if tr is None:
         return tl
-
+    print(tr)
+    print(tl)
     return -1
 
 
@@ -146,8 +147,6 @@ def p_statement(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        if p[3] is not None:
-            p[3].scope = p[2]
         p[0] = p[3]
     global_tree.append((tuple(['statement'] + p[1:])))
 
@@ -157,12 +156,8 @@ def p_scopestatement(p):
                         | LBRACES new_scope statelist end_scope RBRACES
     """
     if len(p) == 4:
-        if p[2] is not None:
-            p[2].scope = p[1]
         p[0] = p[2]
     else:
-        if p[3] is not None:
-            p[3].scope = p[2]
         p[0] = p[3]
 
 
@@ -195,7 +190,7 @@ def p_funclist(p):
 def p_funcdef(p):
     """funcdef : DEF IDENT LPAREN paramlist RPAREN LBRACES new_scope statelist end_scope RBRACES
     """
-
+    new_scope()
     global_tree.append(('funcdef', p[1]))
 
 
