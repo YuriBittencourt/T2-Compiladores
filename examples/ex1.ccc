@@ -33,3 +33,70 @@ def pot(int n, int pot, int res){
     res = n * res;
     return;
 }
+
+def atrib_test(float x, float z){
+  float x;
+  float z;
+  int i;
+  int max;
+  x = 0.0;
+  max = 10000;
+  for (i = 1; i <= max; i = i + 1){
+    print x;
+    x = x + 0.001;
+    z = x;
+    if (z != x){
+      print "Erro numérico na atribuição de números na notação ponto flutuante!";
+      break;
+    }
+  }
+}
+
+def sub_gcd(int x, int y){
+   int i;
+    for(i = 0; i > 0; i = i){
+        if (x != y)
+            break;
+        if (x > y)
+           x = x - y;
+        else
+           y = y - x;
+   }
+    return;
+}
+
+
+def array_of_odd_numbers(){
+  int y;
+  int j;
+  int i;
+  y = new int[10];
+  j = 0;
+  for (i = 0; i < 20; i = i + 1)
+    if (i % 2 == 0){
+      y[j] = i + 1;
+      j = j + 1;
+    }
+    else
+      print 0;
+
+  for (i = 0; i < 10; i = i + 1)
+    print y[i];
+
+  return;
+}
+
+def main(){
+int a;
+int b;
+float sum;
+float pi;
+float z;
+
+pi = 3.14159265359;
+z = pi * pi * (pi + 1.5);
+a = pot(a,b);
+b = array_of_odd_numbers();
+sum = attrib_test(pi,z);
+a = sub_gcd(a,b);
+}
