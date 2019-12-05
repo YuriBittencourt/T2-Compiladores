@@ -188,7 +188,7 @@ def p_funclist(p):
 
 
 def p_funcdef(p):
-    """funcdef : DEF IDENT LPAREN paramlist RPAREN LBRACES new_scope statelist end_scope RBRACES
+    """funcdef : DEF IDENT LPAREN new_scope paramlist RPAREN LBRACES  statelist end_scope RBRACES
     """
     new_scope()
     global_tree.append(('funcdef', p[1]))
